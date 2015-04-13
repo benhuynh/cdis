@@ -5,6 +5,7 @@
 FOLDER=/glusterfs/users/bhuynh/cavsarps/$1
 cd $FOLDER
 mkdir $2
+cp *_MTL_L1T.TXT $2
 for f in *.TIF
 do 
     id=$(basename $f _L1T.TIF)
