@@ -29,7 +29,7 @@ class test(object):
     # 
     # str: filePre, prefix for EO-1 Scene files
 
-    def __init__(self,filePre=object):
+    def __init__(self,filePre=object,rb=object):
         self.fullTrainSet = np.array([])
         self.fullTestSet = np.array([])
         self.trainSet = np.array([])
@@ -42,6 +42,7 @@ class test(object):
         self.mask = None
         self.answers = None
         self.tester = None
+        self.rb = rb
 
     # setUpTest
     # 
@@ -51,7 +52,7 @@ class test(object):
         bandList = np.array(['_B001','_B002','_B003','_B004','_B005','_B006','_B007','_B008','_B009','_B010','_B011','_B012','_B013','_B014','_B015','_B016','_B017','_B018','_B019','_B020','_B021','_B022','_B023','_B024','_B025','_B026','_B027','_B028','_B029','_B030','_B031','_B032','_B033','_B034','_B035','_B036','_B037','_B038','_B039','_B040','_B041','_B042','_B043','_B044','_B045','_B046','_B047','_B048','_B049','_B050','_B051','_B052','_B053','_B054','_B055','_B056','_B057','_B058','_B059','_B060','_B061','_B062','_B063','_B064','_B065','_B066','_B067','_B068','_B069','_B070','_B071','_B072','_B073','_B074','_B075','_B076','_B077','_B078','_B079','_B080','_B081','_B082','_B083','_B084','_B085','_B086','_B087','_B088','_B089','_B090','_B091','_B092','_B093','_B094','_B095','_B096','_B097','_B098','_B099','_B100','_B101','_B102','_B103','_B104','_B105','_B106','_B107','_B108','_B109','_B110','_B111','_B112','_B113','_B114','_B115','_B116','_B117','_B118','_B119','_B120','_B121','_B122','_B123','_B124','_B125','_B126','_B127','_B128','_B129','_B130','_B131','_B132','_B133','_B134','_B135','_B136','_B137','_B138','_B139','_B140','_B141','_B142','_B143','_B144','_B145','_B146','_B147','_B148','_B149','_B150','_B151','_B152','_B153','_B154','_B155','_B156','_B157','_B158','_B159','_B160','_B161','_B162','_B163','_B164','_B165','_B166','_B167','_B168','_B169','_B170','_B171','_B172','_B173','_B174','_B175','_B176','_B177','_B178','_B179','_B180','_B181','_B182','_B183','_B184','_B185','_B186','_B187','_B188','_B189','_B190','_B191','_B192','_B193','_B194','_B195','_B196','_B197','_B198','_B199','_B200','_B201','_B202','_B203','_B204','_B205','_B206','_B207','_B208','_B209','_B210','_B211','_B212','_B213','_B214','_B215','_B216','_B217','_B218','_B219','_B220','_B221','_B222','_B223','_B224','_B225','_B226','_B227','_B228','_B229','_B230','_B231','_B232','_B233','_B234','_B235','_B236','_B237','_B238','_B239','_B240','_B241','_B242'])
         for band in np.arange(242):
             bandName = bandList[band]
-            tifFile = gdal.Open(self.filePre+bandName+'_L1T.TIF')
+            tifFile = gdal.Open(self.filePre+bandName+'_'+rb+'_L1T.TIF')
             rast = tifFile.GetRasterBand(1)
             arr = rast.ReadAsArray()
             if self.dims == None: self.dims = arr.shape
@@ -65,7 +66,8 @@ class test(object):
             else:
                 self.fullTestSet = np.concatenate((self.fullTestSet,mArra),axis=1)            
                 self.bands = np.concatenate((self.bands,np.array([band])))
-            print(band)
+            print('\nbl is'+str(band))
+            print('\nftsl is'+ str(self.fullTestSet.shape))
         self.hypSolarIrradiance()
         print('hsi complete!')
         self.geometricCorrection()
@@ -377,10 +379,11 @@ class test(object):
 
         for i in self.bands:
             #ind = np.nonzero(Esun_hyp==int(i[1:]))[0][0]
+            print(i)
             if i < 70: scale = 40     #additional scaling factor, depending on band #
             else: scale = 80
-            value = self.fullTestSet[i]*1.0
-            self.fullTestSet[i] = value/(Esun_hyp[i,1]*scale)
+            value = self.fullTestSet[,i]*1.0
+            self.fullTestSet[,i] = value/(Esun_hyp[i,1]*scale)
         pass
 
     def writecsv(self,filename):
@@ -391,15 +394,17 @@ class test(object):
         
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Classify an ALI scene and output GeoTiff')
-    parser.add_argument('imname',type=str,help='Scene ID of ALI scene.')
-    parser.add_argument('outfile',type=str,help='Output tif file name.')    
+    parser = argparse.ArgumentParser(description='Take a Hyperion scene and output a csv')
+    parser.add_argument('imname',type=str,help='Scene ID of HYP scene.')
+   #parser.add_argument('outfile',type=str,help='Output csv file name.')    
     options = parser.parse_args()
     name = options.imname
-    savepath = options.outfile
-    path = '/glusterfs/users/bhuynh/cavsarps/'+str(name)+'_1T/'+str(name)
-    f = test(path)
-    f.setUpTest()
-    f.writecsv(savepath)
+    #savepath = options.outfile
+    rblist = ['RB01','RB02','RB03','RB04','RB05','RB06','RB07','RB08','RB09','RB10']
+    for rb in rblist:
+        path = '/glusterfs/users/bhuynh/cavsarps/'+str(name)+'_1T/'+rb+'/'+str(name)
+        f = test(path,rb)
+        f.setUpTest()
+        f.writecsv(rb)
 
     
