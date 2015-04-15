@@ -31,7 +31,7 @@ class test(object):
 
     def __init__(self,filePre=object,rb=object):
         self.fullTrainSet = np.array([])
-        self.fullTestSet = np.array([])
+        self.fullTestSet = np.array([],dtype=float)
         self.trainSet = np.array([])
         self.trainLab = None
         self.filePre = filePre
@@ -59,7 +59,7 @@ class test(object):
             arra = np.reshape(arr,(arr.size,1))
 
             if self.mask == None: self.mask = np.reshape((arra==0),arra.size)
-            mArra = ma.masked_array(arra,self.mask)
+            mArra = ma.masked_array(arra,self.mask,dtype=float)
             if self.fullTestSet.size == 0:
                 self.fullTestSet = mArra                
                 self.bands = np.array([band])
@@ -121,9 +121,9 @@ class test(object):
         sunAngle = float(metadata["PRODUCT_PARAMETERS"]["SUN_ELEVATION"])
         sunAngle = sunAngle*np.pi/180.
         for i in self.bands:
-            value = self.fullTestSet[i]
-            self.fullTestSet[i] = np.pi * esDist**2 * value / np.sin(sunAngle)    # apply same correction to all bands
-            print(i)
+            value = self.fullTestSet[:,i]
+            self.fullTestSet[:,i] = np.pi * esDist**2 * value / np.sin(sunAngle)    # apply same correction to all bands
+            #print(i)
         pass
 
     def hypSolarIrradiance(self):
@@ -380,11 +380,12 @@ class test(object):
         for i in self.bands:
             #ind = np.nonzero(Esun_hyp==int(i[1:]))[0][0]
             print(i)
-            if i < 70: scale = 40     #additional scaling factor, depending on band #
-            else: scale = 80
-            value = self.fullTestSet[,i]*1.0
-            self.fullTestSet[,i] = value/(Esun_hyp[i,1]*scale)
+            if i < 70: scale = 40.0     #additional scaling factor, depending on band #
+            else: scale = 80.0
+            value = self.fullTestSet[:,i]*1.0
+            self.fullTestSet[:,i] = value/(Esun_hyp[i,1]*scale)
         pass
+
 
     def writecsv(self,filename):
         csv = self.fullTestSet
