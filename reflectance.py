@@ -6,8 +6,6 @@ gdal
 numpy
 HISTORY:
 March 2015: Original script
-USE:
-tbd
 '''
 from osgeo import gdal,osr
 import numpy as np
