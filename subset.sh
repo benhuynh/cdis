@@ -1,7 +1,7 @@
 #!/bin/bash
 #Author: Ben Huynh
 #This script subsets a series of hyperion band images based on geographic coordinates, creating a new folder of subsetted band images.
-#Usage: ./subset.sh sceneid RBXXX xoff yoff xsize ysize
+#Usage: ./subset.sh sceneid newfoldername xoff yoff xsize ysize
 FOLDER=/glusterfs/users/bhuynh/cavsarps/$1
 cd $FOLDER
 mkdir $2
